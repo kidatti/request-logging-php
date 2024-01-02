@@ -1,7 +1,22 @@
 <?php
 header("Access-Control-Allow-Origin: *");
-$dir_log = 'logs/' . date("Ymd-his") . '/';
-mkdir($dir_log);
+
+// ログディレクトリ作成
+$dir = 'logs/' . date("Ymd-His");
+$num = 1;
+do {
+    $dir_log = $dir . '-' . sprintf("%03d", $num);
+    if (!file_exists($dir_log)) {
+        mkdir($dir_log, 0777, true);
+        break;
+    }
+    $num++;
+} while (true);
+
+// ログ出力
+$log_file = $dir_log . '/log.txt';
+$data_file = $dir_log . '/data.txt';
+
 $data = file_get_contents("php://input");
 $request = [
     'method' => $_SERVER["REQUEST_METHOD"],
@@ -25,9 +40,9 @@ foreach ($_POST as $key => $value) {
 // post
 foreach ($_FILES as $key => $value) {
     $request['files'][$key] = $value;
-    move_uploaded_file($value['tmp_name'], $dir_log . $value['name']);
+    move_uploaded_file($value['tmp_name'], $dir_log . '/' . $value['name']);
 }
-file_put_contents($dir_log . 'log.txt', print_r($request,true));
+file_put_contents($log_file, print_r($request,true));
 if (isset($data) AND $data != "") {
-    file_put_contents($dir_log . 'data.txt', $data);
+    file_put_contents($data_file, $data);
 }
